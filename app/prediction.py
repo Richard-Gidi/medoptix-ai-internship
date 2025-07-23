@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 # create a class 
 # = helps us to load out from the pickle file 
 class MedoptixPredictor:
-
     """ Helps handle all the ML prediction for Medoptix"""
 
     # step 1 - instantiate
@@ -25,11 +24,15 @@ class MedoptixPredictor:
 
         try:
             model_path = "models/"
-            self.models["feature_preprocessor"] = joblib.load(f"{model_path}medoptix_prediction_features_preprocessor.pkl")        
-            self.models["dropout_model"] = joblib.load(f"{model_path}medoptix_prediction_dropout_model.pkl")        
-            self.models["feature_names"] = joblib.load(f"{model_path}medoptix_prediction_features_name.pkl")   
+            self.models["feature_preprocessor"] = joblib.load(f"{model_path}medoptix_prediction_preprocessor.pkl")        
+            self.models["dropout_model"] = joblib.load(f"{model_path}medoptix_prediction_model.pkl")        
+            self.models["feature_names"] = joblib.load(f"{model_path}medoptix_prediction_feature_names.pkl")
+            self.models["columns"] = joblib.load(f"{model_path}medoptix_prediction_columns.pkl") 
 
             logger.info("Models loaded successfully")
+            logger.info(f"Available models: {list(self.models.keys())}")
+            logger.info(f"feature names: {self.models['feature_names']}")
+            logger.info(f"columns: {self.models['columns']}")
             return True   
         except Exception as e:
             logger.error(f"Error loading models: {str(e)}")
@@ -39,13 +42,13 @@ class MedoptixPredictor:
     # step 3 - predict the dropout
     def predict_dropout (self, patient_data: Dict[str, Any]) -> Tuple[float, int, str, list]:
         """ predict droupouts and return all relevant information"""
-
         try:
             df = pd.DataFrame([patient_data])
 
             # step 3 a - put in the data and  preprocess and also run it through our model
-            X_processed = self.models["feature_preprocessor"].transform (df)
-            dropout_prob = self.models["dropout_model"].predict_proba(X_processed)[0,1]
+            X_processed = self.models["feature_preprocessor"].transform(df)
+            dropout_prob_raw = self.models["dropout_model"].predict_proba(X_processed)[0,1]
+            dropout_prob = float(dropout_prob_raw)
 
             # step 3b - recommendation and risk level
             risk_level, recommendation = self._get_risk_recommendation(dropout_prob)
