@@ -2,7 +2,7 @@
 from pydantic import BaseModel
 from typing import List , Dict, Optional
 
-class Patient(BaseModel):    # input
+class Patient(BaseModel):
     """patient data schema"""
     patient_id: int
     age: float 
@@ -14,7 +14,6 @@ class Patient(BaseModel):    # input
 
     class Confi:
         orm_mode = True
-
 
 class DropoutPrediction(BaseModel):   # output
     patient_id : str
