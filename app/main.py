@@ -149,63 +149,56 @@ async def health_check():
     )
 
 
-# step 6 :  prepare the patient data (coming as input or request)
+# --- Fix in prepare_patient_data ---
 def prepare_patient_data(patient: PatientData) -> pd.DataFrame:
-    """ Convest the patientData to Dataframe with columns in the same order as the model expects"""
-    predictor = MedoptixPredictor()
-    columns = predictor.models["columns"]
+    """Convert the patient data to DataFrame with columns in the order expected by the model"""
+    columns = predictor.models.get("columns", [])
 
     patient_dict = patient.dict()
 
     # create a DataFrame with the same columns as the model expects
     df_data = {}
-    for col in columns:        
-
-        # check if the column exists in the patient data
+    for col in columns:
         if col in patient_dict:
-
-            # if it exists, add it to the DataFrame
             df_data[col] = [patient_dict[col]]
-        
-        # check if the column is not in the patient data
         else:
-            # if it does not exist, add a default value
-            if col in ['n_sessiona', 'first_week', 'last_week']:
+            # provide default values
+            if col in ['n_sessions', 'first_week', 'last_week']:
                 df_data[col] = [0]
             elif col in ['avg_session_duration', 'mean_pain', 'mean_pain_delta', 'home_adherence_mean', 'satisfaction_mean']:
                 df_data[col] = [0.0]
             else:
                 df_data[col] = ["Unknown"]
-    
-    # return the DataFrame
+
     return pd.DataFrame(df_data, columns=columns)
 
 
-
-# step 7 : defined the predict endpoint
-@app.post("/predict/dropout",response_model=DropoutPredictionResponse)
+# --- Fix in predict_dropout ---
+@app.post("/predict/dropout", response_model=DropoutPredictionResponse)
 async def predict_dropout(patient_data: PatientData):
     """
     Predict dropout probability and provide recommendations based on patient data
     """
     try:
         if not predictor.models:
-            raise HTTPException(status_code=500, detail="Models not loaded")  # raise an except is tthe model is not available
+            raise HTTPException(status_code=500, detail="Models not loaded")
 
-        # predict the dropout probablilty
+        # Make prediction
         dropout_prob, _, risk_level, recommendations = predictor.predict_dropout(patient_data.dict())
 
-        # generate patient_id 
         patient_id = f"pt_{hash(str(patient_data.dict())) % 10000:05d}"
 
         return DropoutPredictionResponse(
-            patient_id= patient_id,
-            dropout_probability= dropout_prob,
-            risk_level= risk_level,
-            recommendations= recommendations
+            patient_id=patient_id,
+            dropout_probability=dropout_prob,
+            risk_level=risk_level,
+            recommendations=recommendations
         )
-    except Exception as e :
-        logger.error(f"Error in dropout preditions {str(e)}")
+
+    except Exception as e:
+        logger.error(f"Error in dropout prediction: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
 
 
 # step 8 : we then called the endpoint
