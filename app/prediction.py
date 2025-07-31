@@ -15,7 +15,7 @@ class MedoptixPredictor:
     # step 1 - instantiate
     def __init__(self):
         self.models = {}     # models output comes in a JSON format
-        self.load_models
+        self.load_models()
 
     
     # step 2 - load our model
