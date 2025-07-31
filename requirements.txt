@@ -12,6 +12,7 @@ pandas
 numpy
 scikit-learn==1.6.1
 joblib
+imbalanced-learn
 
 # Database connectivity
 psycopg2-binary
