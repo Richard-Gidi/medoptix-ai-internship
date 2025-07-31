@@ -1,8 +1,37 @@
+# FastAPI and web framework dependencies
+fastapi
+uvicorn[standard]
+gunicorn
+pydantic
+
+# CORS middleware
+python-multipart
+
+# Data science and ML libraries
 pandas
 numpy
-scikit-learn
-xgboost
+scikit-learn==1.6.1
 joblib
-matplotlib
-seaborn
+
+# Database connectivity
+psycopg2-binary
+sqlalchemy
+
+# Redis connectivity
+redis
+
+# HTTP client for health checks
+httpx
+
+# Logging and monitoring
+python-json-logger
+
+# Environment variable management
+python-dotenv
+
+# Additional utilities
+typing-extensions
+
+# For development/testing (optional)
 pytest
+pytest-asyncio
