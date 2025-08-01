@@ -6,7 +6,6 @@ from typing import Dict, Any , Tuple
 
 logger = logging.getLogger(__name__)
 
-
 # create a class 
 # = helps us to load out from the pickle file 
 class MedoptixPredictor:
@@ -16,7 +15,6 @@ class MedoptixPredictor:
     def __init__(self):
         self.models = {}     # models output comes in a JSON format
         self.load_models()
-
     
     # step 2 - load our model
     def load_models(self) -> bool:

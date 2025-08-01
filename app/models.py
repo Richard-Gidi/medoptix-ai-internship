@@ -12,7 +12,7 @@ class Patient(BaseModel):    # input
     n_sessions : int
     injury_type : str
 
-    class Confi:
+    class Config:
         orm_mode = True
 
 
