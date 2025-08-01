@@ -33,6 +33,6 @@ python-dotenv
 # Additional utilities
 typing-extensions
 
-# For development/testing (optional)
+# For development/testing 
 pytest
 pytest-asyncio
