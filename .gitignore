@@ -194,7 +194,5 @@ cython_debug/
 .cursorindexingignore
 
 # Data and outputs
-Datasets/processed*
-reports/figures/
-*.joblib
-*.pkl
+#Datasets/processed*
+#reports/figures/
