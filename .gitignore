@@ -195,7 +195,6 @@ cython_debug/
 
 # Data and outputs
 Datasets/processed*
-models/
 reports/figures/
 *.joblib
 *.pkl
