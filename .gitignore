@@ -196,3 +196,5 @@ cython_debug/
 # Data and outputs
 #Datasets/processed*
 #reports/figures/
+
+.excalidraw
