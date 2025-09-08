@@ -1,5 +1,5 @@
 # This single file replaces both ci.yml and deploy.yml
-# It ensures a robust, sequential build-then-deploy process.
+# It ensures a robust, sequential build-then-deploy processlet check if it works now.
 
 name: CI/CD Pipeline
 
