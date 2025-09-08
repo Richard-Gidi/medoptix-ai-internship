@@ -138,7 +138,7 @@ async def health_check():
         column_name = []
         
     return HealthResponse (
-        status="Healthy",
+        status="Healthy - CI/CD deployment successful!",
         models_loaded=models_loaded,
         available_models=list(predictor.models.keys()) if predictor.models else [],
         model_info=model_info
