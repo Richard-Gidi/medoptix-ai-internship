@@ -89,5 +89,5 @@ jobs:
 
       - name: Verify Deployment Health
         run: |
-          sleep 20 # Wait for the service to stabilize
+          sleep 30 # Wait for the service to stabilize (Increased from 20 to 30)
           curl -fS https://sabisave.info/health || exit 1
