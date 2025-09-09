@@ -35,38 +35,22 @@ jobs:
             # Install Docker if not already installed
             if ! command -v docker &> /dev/null; then
               echo "Installing Docker..."
-              
-              # Remove any old Docker packages
               sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
-              
-              # Install prerequisites
               sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-              
-              # Add Docker's official GPG key
               sudo mkdir -p /etc/apt/keyrings
               curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-              
-              # Set up the repository
               echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-              
-              # Update package index and install Docker
               sudo apt-get update -y
               sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-              
-              # Start and enable Docker service
               sudo systemctl start docker
               sudo systemctl enable docker
-              
-              # Add current user to docker group
-              sudo usermod -aG docker $USER
-              
               echo "Docker installed successfully"
             else
               echo "Docker is already installed"
               docker --version
             fi
             
-            # Install Docker Compose (standalone) if not available
+            # Install Docker Compose standalone if missing
             if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
               echo "Installing Docker Compose..."
               DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
@@ -101,7 +85,7 @@ jobs:
             # Set proper ownership
             sudo chown -R ubuntu:ubuntu $APP_DIR
             
-            # Create environment file if it doesn't exist
+            # Create environment file if missing
             if [ ! -f ".env" ]; then
               echo "Creating .env file..."
               cat > .env << 'EOL'
@@ -113,54 +97,43 @@ jobs:
             EOL
             fi
             
-            # Check if docker-compose.yml exists
+            # Check for docker-compose.yml
             if [ ! -f "docker-compose.yml" ]; then
               echo "❌ docker-compose.yml not found in repository"
-              echo "Available files:"
               ls -la
               exit 1
             fi
             
             echo "Found docker-compose.yml, proceeding with deployment..."
             
-            # Use newgrp to apply docker group membership for current session
-            # This is a workaround since we can't logout/login in a script
-            newgrp docker << 'DOCKER_COMMANDS'
-            
             # Stop and remove existing containers
             echo "Stopping existing containers..."
-            docker-compose down --remove-orphans 2>/dev/null || true
+            sudo docker-compose down --remove-orphans 2>/dev/null || true
             
-            # Remove old images to free space
+            # Clean up old images
             echo "Cleaning up old Docker images..."
-            docker image prune -f 2>/dev/null || true
+            sudo docker image prune -f 2>/dev/null || true
             
             # Build and start containers
             echo "Building and starting containers..."
-            docker-compose up -d --build --force-recreate
+            sudo docker-compose up -d --build --force-recreate
             
-            # Show running containers
             echo "Running containers:"
-            docker-compose ps
+            sudo docker-compose ps
             
-            DOCKER_COMMANDS
-            
-            # Wait for services to be ready
+            # Wait for services
             echo "Waiting for services to start..."
             sleep 45
             
-            # Health check with retry logic
+            # Health check
             echo "Performing health check..."
             RETRY_COUNT=0
             MAX_RETRIES=6
             HEALTH_URL="http://localhost:8000/health"
             
-            # First check if port 8000 is listening
             if ! netstat -tuln | grep -q ":8000 "; then
-              echo "Port 8000 is not listening, checking container logs..."
-              newgrp docker << 'LOG_COMMANDS'
-              docker-compose logs --tail=100
-              LOG_COMMANDS
+              echo "Port 8000 is not listening, checking logs..."
+              sudo docker-compose logs --tail=100
             fi
             
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -171,15 +144,10 @@ jobs:
                 break
               else
                 echo "❌ Health check failed, retrying in 15 seconds... (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
-                
-                # Show some debugging info
-                echo "Checking if service is running..."
-                newgrp docker << 'DEBUG_COMMANDS'
-                docker-compose ps
+                echo "Checking service status..."
+                sudo docker-compose ps
                 echo "Recent logs:"
-                docker-compose logs --tail=20 --since=2m
-                DEBUG_COMMANDS
-                
+                sudo docker-compose logs --tail=20 --since=2m
                 sleep 15
                 RETRY_COUNT=$((RETRY_COUNT + 1))
               fi
@@ -188,34 +156,26 @@ jobs:
             if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
               echo "❌ Health check failed after $MAX_RETRIES attempts"
               echo "Final container status:"
-              newgrp docker << 'FINAL_DEBUG_COMMANDS'
-              docker-compose ps
-              echo "Full container logs:"
-              docker-compose logs --tail=100
+              sudo docker-compose ps
+              echo "Full logs:"
+              sudo docker-compose logs --tail=100
               echo "Docker system info:"
-              docker system df
-              FINAL_DEBUG_COMMANDS
+              sudo docker system df
               exit 1
             fi
             
-            # Clean up unused Docker resources
+            # Clean up
             echo "Cleaning up unused Docker resources..."
-            newgrp docker << 'CLEANUP_COMMANDS'
-            docker system prune -f 2>/dev/null || true
-            CLEANUP_COMMANDS
+            sudo docker system prune -f 2>/dev/null || true
             
-            # Get public IP for final message
             PUBLIC_IP=$(curl -s --connect-timeout 10 ifconfig.me 2>/dev/null || curl -s --connect-timeout 10 ipinfo.io/ip 2>/dev/null || echo "Unable to determine public IP")
             
             echo "🎉 Deployment successful!"
             echo "📍 Application should be accessible at: http://$PUBLIC_IP:8000"
             echo "🔍 Health check endpoint: http://$PUBLIC_IP:8000/health"
             
-            # Final status check
-            newgrp docker << 'STATUS_COMMANDS'
             echo "Final container status:"
-            docker-compose ps
-            STATUS_COMMANDS
+            sudo docker-compose ps
 
       - name: Notify deployment status
         if: always()
