@@ -1,16 +1,13 @@
-version: "3.9"
-
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/medoptix-api:latest
     ports:
-      - "8000-8001:8000"
+      - "8001:8000" # Fixed: was "8000-8001:8000" which is invalid
     env_file:
       - .env
     environment:
       - PYTHONPATH=/app
+      - DOCKER_USERNAME=${DOCKER_USERNAME}
     volumes:
       - ./models:/app/models
     restart: unless-stopped
