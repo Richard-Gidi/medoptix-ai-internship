@@ -127,6 +127,12 @@ jobs:
             
             echo "Found docker-compose.yml, proceeding with deployment..."
             
+            # Remove obsolete version attribute if it exists
+            if grep -q "^version:" docker-compose.yml; then
+              echo "Removing obsolete version attribute from docker-compose.yml..."
+              sed -i '/^version:/d' docker-compose.yml
+            fi
+            
             # Stop and remove existing containers
             echo "Stopping existing containers..."
             sudo docker-compose down --remove-orphans 2>/dev/null || true
