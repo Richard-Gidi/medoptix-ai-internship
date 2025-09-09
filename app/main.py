@@ -145,7 +145,7 @@ async def health_check():
     )
 
 
-# step 6 :  prepare the patient data (coming as input or request)
+# step 6 :  prepare the patient data (coming as input or request) letsee see if this works 
 def prepare_patient_data(patient: PatientData) -> pd.DataFrame:
     """ Convest the patientData to Dataframe with columns in the same order as the model expects"""
     predictor = MedoptixPredictor()
