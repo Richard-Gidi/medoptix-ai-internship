@@ -1,5 +1,5 @@
 # This single file replaces both ci.yml and deploy.yml
-# It ensures a robust, sequential build-then-deploy process and win
+# It ensures a robust, sequential build-then-deploy process
 name: CI/CD Pipeline
 on:
   push:
@@ -109,4 +109,4 @@ jobs:
       - name: Verify Deployment Health
         run: |
           sleep 30 # Wait for the service to stabilize
-          curl -fS https://sabisave.info/health || exit 1s
+          curl -fS https://sabisave.info/health || exit 1
