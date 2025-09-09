@@ -71,8 +71,8 @@ jobs:
             # Pull the latest image explicitly from Docker Hub
             docker pull ${{ secrets.DOCKER_USERNAME }}/medoptix-api:latest
 
-            # Bring down the old containers and start the new ones
-            docker-compose up -d --remove-orphans
+            # Bring down the old containers and start new ones, forcing recreation
+            docker-compose up -d --force-recreate --remove-orphans
 
             # Optional: Clean up old, unused Docker images to save space
             docker image prune -f
