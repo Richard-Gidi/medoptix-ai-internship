@@ -1,5 +1,5 @@
 # This single file replaces both ci.yml and deploy.yml
-# It ensures a robust, sequential build-then-deploy processlet check if it works now.
+# It ensures a robust, sequential build-then-deploy process
 
 name: CI/CD Pipeline
 
@@ -58,7 +58,7 @@ jobs:
     needs: build # <-- CRITICAL: This ensures deployment only runs after a successful build
 
     steps:
-      - name: Deploy to EC2 Server
+      - name: Deploy and Capture Logs
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -73,6 +73,13 @@ jobs:
 
             # Bring down the old containers and start new ones, forcing recreation
             docker-compose up -d --force-recreate --remove-orphans
+
+            # --- CRITICAL DEBUGGING STEP ---
+            # Wait a few seconds for the application to attempt to start, then grab its logs.
+            sleep 10 
+            echo "--- APPLICATION CONTAINER LOGS ---"
+            docker-compose logs --tail="50"
+            echo "----------------------------------"
 
             # Optional: Clean up old, unused Docker images to save space
             docker image prune -f
