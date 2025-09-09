@@ -58,7 +58,7 @@ jobs:
     needs: build # <-- CRITICAL: This ensures deployment only runs after a successful build
 
     steps:
-      - name: Deploy and Capture Logs
+      - name: Deploy to EC2 Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -68,11 +68,14 @@ jobs:
             # Navigate to the application directory
             cd medoptix-ai-internship
 
-            # Pull the latest image explicitly from Docker Hub
+            echo "--- Tearing down old services ---"
+            docker-compose down
+
+            echo "--- Pulling latest image from Docker Hub ---"
             docker pull ${{ secrets.DOCKER_USERNAME }}/medoptix-api:latest
 
-            # Bring down the old containers and start new ones, forcing recreation
-            docker-compose up -d --force-recreate --remove-orphans
+            echo "--- Starting new services ---"
+            docker-compose up -d
 
             # --- CRITICAL DEBUGGING STEP ---
             # Wait a few seconds for the application to attempt to start, then grab its logs.
