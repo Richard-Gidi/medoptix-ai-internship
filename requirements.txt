@@ -29,6 +29,7 @@ python-json-logger
 
 # Environment variable management
 python-dotenv
+requests
 
 # Additional utilities
 typing-extensions
